@@ -1,4 +1,4 @@
-local Zolar = loadstring(game:HttpGet("https://raw.githubusercontent.com/Be1for/UI/refs/heads/main/flickUI/Zolar.lua"))()
+local Zolar = loadstring(game:HttpGet("https://raw.githubusercontent.com/Be1for/UI/refs/heads/main/flickUI/pastelua.lua"))()
 
 local Window = Zolar:Window({
     Name = "ZOLAR",
