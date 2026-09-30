@@ -367,7 +367,7 @@ function Library.new(config)
         Description = 'candy.cc UI Library',
         Keybind = Enum.KeyCode.LeftControl,
         Theme = 'Dark',
-        Logo = 'https://raw.githubusercontent.com/Be1for/UI/refs/heads/main/logo.png',
+        Logo = 'https://raw.githubusercontent.com/Be1for/UI/refs/heads/main/cc.png',
         Size = UDim2.new(0.100000001, 445, 0.100000001, 315),
     })
 
