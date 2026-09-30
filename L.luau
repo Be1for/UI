@@ -127,23 +127,27 @@ local ElBlurSource = function()
 			Part.CFrame = CurrentCamera.CFrame;
 
 			if not NoAutoBackground then
-
-				local _,updatec = pcall(function()
-					local userSettings = UserSettings():GetService("UserGameSettings")
-					local qualityLevel = userSettings.SavedQualityLevel.Value
-
-					if qualityLevel < 8 then
-						Twen:Create(frame,TweenInfo.new(1),{
-							BackgroundTransparency = 0
-						}):Play()
-					else
-						Twen:Create(frame,TweenInfo.new(1),{
-							BackgroundTransparency = 0.4
-						}):Play()
-					end;
-				end)
-
+				local targetT = C4.MenuTransparency
+				if targetT == nil then
+					targetT = 0.4
+					pcall(function()
+						local userSettings = UserSettings():GetService("UserGameSettings")
+						local qualityLevel = userSettings.SavedQualityLevel.Value
+						if qualityLevel < 8 then
+							targetT = 0
+						end
+					end)
+				end
+				if math.abs((frame.BackgroundTransparency or 0) - targetT) > 0.02 then
+					frame.BackgroundTransparency = targetT
+				end
 			end
+		end
+
+		C4.MenuTransparency = nil
+		C4.SetMenuTransparency = function(t)
+			C4.MenuTransparency = math.clamp(tonumber(t) or 0.4, 0, 1)
+			frame.BackgroundTransparency = C4.MenuTransparency
 		end
 
 		C4.Update = Update;
@@ -196,11 +200,10 @@ end)
 function Library.GradientImage(E : Frame , Color)
 	local GLImage = Instance.new("ImageLabel")
 	local upd = tick();
-	local nextU , Speed , speedy , SIZ = 4 , 5 , -5 , 0.8;
-	local nextmain = UDim2.new();
+	local nextU , Speed , speedy , SIZ = 4 , 5 , -5 , 1.2;
+	local nextmain = UDim2.new(0.5, 0, 0.5, 0);
 	local rng = Random.new(math.random(10,100000) + math.random(100, 1000) + math.sqrt(tick()));
-	local int = 1;
-	local TPL = 0.55;
+	local TPL = 0.35;
 
 	GLImage.Name = "GLImage"
 	GLImage.Parent = E
@@ -210,40 +213,36 @@ function Library.GradientImage(E : Frame , Color)
 	GLImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	GLImage.BorderSizePixel = 0
 	GLImage.Position = UDim2.new(0.5, 0, 0.5, 0)
-	GLImage.Size = UDim2.new(0.800000012, 0, 0.800000012, 0)
+	GLImage.Size = UDim2.new(1.2, 0, 1.2, 0)
 	GLImage.SizeConstraint = Enum.SizeConstraint.RelativeYY
-	GLImage.ZIndex = E.ZIndex - 1;
+	GLImage.ZIndex = 1
 	GLImage.Image = "rbxassetid://867619398"
 	GLImage.ImageColor3 = Color or Color3.fromRGB(0, 195, 255)
-	GLImage.ImageTransparency = 1;
+	GLImage.ImageTransparency = 0.35
+	GLImage.ScaleType = Enum.ScaleType.Fit
 
-	local str = 'GL_EFFECT_'..tostring(tick());
+	local str = 'GL_EFFECT_'..tostring(tick())..'_'..tostring(math.random(1,99999));
 	local bound = true
 	game:GetService('RunService'):BindToRenderStep(str,45,function()
 		if not bound or not GLImage.Parent then return end
 		if (tick() - upd) > nextU then
 			nextU = rng:NextNumber(1.1,2.5)
-			Speed = rng:NextNumber(-6,6)
-			speedy = rng:NextNumber(-6,6)
-			TPL = rng:NextNumber(0.2,0.8)
-			SIZ = rng:NextNumber(0.6,0.9);
+			Speed = rng:NextNumber(-4,4)
+			speedy = rng:NextNumber(-4,4)
+			TPL = rng:NextNumber(0.15,0.55)
+			SIZ = rng:NextNumber(0.9,1.4);
 			upd = tick();
-			int = 1
 		else
-			speedy = speedy + rng:NextNumber(-0.1,0.1);
-			Speed = Speed + rng:NextNumber(-0.1,0.1);
-
+			speedy = speedy + rng:NextNumber(-0.05,0.05);
+			Speed = Speed + rng:NextNumber(-0.05,0.05);
 		end;
 
-		nextmain = nextmain:Lerp(UDim2.new(0.5 + (Speed / 24),0,0.5 + (speedy / 24),0) , .025)
-		int = int + 0.1
-
-		Twen:Create(GLImage,TweenInfo.new(1),{
-			Rotation = GLImage.Rotation + Speed,
-			Position = nextmain,
-			Size = UDim2.fromScale(SIZ,SIZ),
-			ImageTransparency = TPL
-		}):Play()
+		nextmain = nextmain:Lerp(UDim2.new(0.5 + (Speed / 30),0,0.5 + (speedy / 30),0) , .04)
+		GLImage.Rotation = GLImage.Rotation + Speed * 0.15
+		GLImage.Position = nextmain
+		GLImage.Size = UDim2.fromScale(SIZ, SIZ)
+		GLImage.ImageTransparency = TPL
+		GLImage.ImageColor3 = Color or Color3.fromRGB(0, 195, 255)
 	end)
 
 	return {
@@ -343,7 +342,7 @@ function Library.new(config)
 		local softInfo = TweenInfo.new(0.55, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 		if WindowTable.WindowToggle then
 			MainFrame.Visible = true
-			Twen:Create(MainFrame, openInfo, {BackgroundTransparency = 0.4, Size = config.Size}):Play();
+			Twen:Create(MainFrame, openInfo, {BackgroundTransparency = WindowTable._MenuTransparency or 0.4, Size = config.Size}):Play();
 			Twen:Create(MainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.fromScale(0.5,0.5)}):Play();
 			Twen:Create(MainDropShadow, softInfo, {ImageTransparency = 0.6}):Play();
 			Twen:Create(Headers, softInfo, {BackgroundTransparency = 0.5}):Play();
@@ -481,9 +480,13 @@ function Library.new(config)
 		WindowTable._ActiveEffects = {}
 	end
 
-	Twen:Create(MainFrame,TweenInfo1,{BackgroundTransparency = 0.4,Size = config.Size}):Play();
+	Twen:Create(MainFrame,TweenInfo1,{BackgroundTransparency = WindowTable._MenuTransparency or 0.4,Size = config.Size}):Play();
 
 	WindowTable.ElBlurUI = ElBlurSource.new(MainFrame);
+	WindowTable._MenuTransparency = 0.4
+	if WindowTable.ElBlurUI and WindowTable.ElBlurUI.SetMenuTransparency then
+		WindowTable.ElBlurUI.SetMenuTransparency(0.4)
+	end
 
 	UICorner.CornerRadius = UDim.new(0, 10)
 	UICorner.Parent = MainFrame
@@ -3064,9 +3067,12 @@ function Library.new(config)
 			Default = 40,
 			Callback = function(val)
 				local t = val / 100
-				Twen:Create(MainFrame, TweenInfo.new(0.25), {
-					BackgroundTransparency = t
-				}):Play()
+				WindowTable._MenuTransparency = t
+				if WindowTable.ElBlurUI and WindowTable.ElBlurUI.SetMenuTransparency then
+					WindowTable.ElBlurUI.SetMenuTransparency(t)
+				else
+					MainFrame.BackgroundTransparency = t
+				end
 			end
 		})
 
