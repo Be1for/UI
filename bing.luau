@@ -1,10 +1,3 @@
---[[
-	Bing UI Library для Roblox
-	Telegram: t.me/pasterlua
-	Стиль: тёмно-синее меню, вертикальные вкладки слева, большой логотип "Bing"
-	Компоненты: Tab, Section, Label, Button, Toggle, Slider, Dropdown (Multi), Input, Keybind, Notify
-]]
-
 local Bing = { Version = "1.0.0", Telegram = "t.me/pasterlua" }
 
 local Players          = game:GetService("Players")
@@ -28,7 +21,6 @@ local Theme = {
 }
 Bing.Theme = Theme
 
--- ========= Хелперы =========
 local function Create(class, props, children)
 	local inst = Instance.new(class)
 	for k, v in pairs(props or {}) do inst[k] = v end
@@ -108,7 +100,6 @@ local function Hover(row, btn)
 	btn.MouseLeave:Connect(function() Tween(row, { BackgroundColor3 = Theme.Element }) end)
 end
 
--- ========= Классы =========
 local WindowClass = {}; WindowClass.__index = WindowClass
 local TabClass    = {}; TabClass.__index    = TabClass
 
@@ -124,7 +115,6 @@ local function Fire(tab, o, obj)
 	if o.Callback then task.spawn(o.Callback, obj.Value) end
 end
 
--- ========= Окно =========
 function Bing:CreateWindow(opts)
 	opts = opts or {}
 	local title    = opts.Title or "Bing"
@@ -153,7 +143,6 @@ function Bing:CreateWindow(opts)
 		}),
 	})
 
-	-- Сайдбар
 	local sidebar = Create("Frame", {
 		Size = UDim2.new(0, 150, 1, 0), BackgroundTransparency = 1, Parent = main,
 	})
@@ -161,7 +150,7 @@ function Bing:CreateWindow(opts)
 		Size = UDim2.new(1, 0, 0, 56), Position = UDim2.new(0, 0, 0, 6), BackgroundTransparency = 1,
 		Text = "Bing", TextColor3 = Theme.Title, Font = Enum.Font.GothamBold, TextSize = 40, Parent = sidebar,
 	})
-	Create("Frame", { -- разделитель под логотипом
+	Create("Frame", {
 		Size = UDim2.new(1, -24, 0, 1), Position = UDim2.new(0, 12, 0, 68), BackgroundColor3 = Theme.Stroke,
 		BorderSizePixel = 0, Parent = sidebar,
 	})
@@ -171,13 +160,11 @@ function Bing:CreateWindow(opts)
 		Parent = sidebar,
 	}, { Create("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }) })
 
-	-- Вертикальная линия между сайдбаром и контентом
 	Create("Frame", {
 		Size = UDim2.new(0, 1, 1, -24), Position = UDim2.new(0, 150, 0, 12), BackgroundColor3 = Theme.Stroke,
 		BorderSizePixel = 0, Parent = main,
 	})
 
-	-- Шапка контента с Telegram
 	local header = Create("Frame", {
 		Size = UDim2.new(1, -151, 0, 40), Position = UDim2.new(0, 151, 0, 0), BackgroundTransparency = 1, Parent = main,
 	})
@@ -190,7 +177,6 @@ function Bing:CreateWindow(opts)
 		if setclipboard then pcall(setclipboard, "https://" .. tgText) end
 	end)
 
-	-- Контейнер страниц
 	local pages = Create("Frame", {
 		Size = UDim2.new(1, -171, 1, -52), Position = UDim2.new(0, 161, 0, 44), BackgroundTransparency = 1,
 		ClipsDescendants = true, Parent = main,
@@ -198,7 +184,6 @@ function Bing:CreateWindow(opts)
 
 	MakeDraggable(main, main)
 
-	-- Уведомления
 	local notifyHolder = Create("Frame", {
 		Size = UDim2.new(0, 260, 1, -20), Position = UDim2.new(1, -270, 0, 10), BackgroundTransparency = 1, Parent = gui,
 	}, { Create("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }) })
@@ -212,7 +197,6 @@ function Bing:CreateWindow(opts)
 		if not gp and input.KeyCode == toggleKey then window:Toggle() end
 	end)
 
-	-- Плавающая кнопка (для телефона)
 	if opts.ToggleButton ~= false then
 		local fb = Create("TextButton", {
 			Size = UDim2.fromOffset(40, 40), Position = UDim2.new(0, 12, 0.4, 0), BackgroundColor3 = Theme.TabActive,
@@ -231,8 +215,6 @@ end
 
 function WindowClass:Destroy() self.Gui:Destroy() end
 
-function WindowClass:SetTelegram(text) end -- зарезервировано
-
 function WindowClass:Notify(o)
 	o = o or {}
 	local card = Create("Frame", {
@@ -250,7 +232,6 @@ function WindowClass:Notify(o)
 	task.delay(o.Duration or 4, function() if card then card:Destroy() end end)
 end
 
--- ========= Вкладки =========
 function WindowClass:Tab(o)
 	o = o or {}
 	local btn = Create("TextButton", {
@@ -264,7 +245,7 @@ function WindowClass:Tab(o)
 		AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = self.Pages,
 	}, { Create("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }), Pad(0, 0, 6, 4) })
 
-	local tab = setmetatable({ Window = self, Button = btn, Page = page }, TabClass)
+	local tab = setmetatable({ Window = self, TabButton = btn, Page = page }, TabClass)
 	table.insert(self.Tabs, tab)
 
 	btn.MouseButton1Click:Connect(function() self:Select(tab) end)
@@ -276,12 +257,11 @@ function WindowClass:Select(tab)
 	for _, t in ipairs(self.Tabs) do
 		local active = (t == tab)
 		t.Page.Visible = active
-		Tween(t.Button, { BackgroundColor3 = active and Theme.TabActive or Theme.Tab })
+		Tween(t.TabButton, { BackgroundColor3 = active and Theme.TabActive or Theme.Tab })
 	end
 	self.Current = tab
 end
 
--- ========= Элементы =========
 function TabClass:Section(text)
 	return Create("TextLabel", {
 		Size = UDim2.new(1, 0, 0, 22), BackgroundTransparency = 1, Text = (text or ""):upper(), TextColor3 = Theme.SubText,
